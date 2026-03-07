@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTech Admin - Complete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; margin: 100px auto; }
+        .login-box h2 { margin-bottom: 30px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        button { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: 600; }
+        button:hover { opacity: 0.9; }
+        .btn-danger { background: #dc3545; }
+        .btn-success { background: #28a745; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .error { background: #fee; color: #c33; padding: 12px; border-radius: 6px; margin: 10px 0; display: none; }
+        .success { background: #efe; color: #3c3; padding: 12px; border-radius: 6px; margin: 10px 0; }
+        .admin-panel { display: none; max-width: 1400px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 32px; color: #667eea; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 12px 24px; background: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab.active { background: #667eea; color: white; }
+        .content-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .form-section { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        label { display: block; margin-top: 12px; font-weight: 500; font-size: 14px; }
+        .preview-img { max-width: 200px; margin: 10px 0; border-radius: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 50px auto; max-height: 80vh; overflow-y: auto; }
+        .close { float: right; font-size: 28px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="login-box">
+        <h2>🎓 EduTech Admin</h2>
+        <div id="loginError" class="error"></div>
+        <input type="email" id="loginEmail" placeholder="Email" value="admin@edutech.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="admin123">
+        <button onclick="login()" style="width: 100%;">Login</button>
+    </div>
+
+    <div id="adminPanel" class="admin-panel">
+        <div class="header">
+            <div><h1>🚀 EduTech Admin</h1></div>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card"><h3 id="usersCount">0</h3><p>Users</p></div>
+            <div class="stat-card"><h3 id="coursesCount">0</h3><p>Courses</p></div>
+            <div class="stat-card"><h3 id="eventsCount">0</h3><p>Events</p></div>
+            <div class="stat-card"><h3 id="postsCount">0</h3><p>Posts</p></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('courses')">📚 Courses</button>
+            <button class="tab" onclick="showTab('events')">📅 Events</button>
+            <button class="tab" onclick="showTab('users')">👥 Users</button>
+        </div>
+
+        <!-- COURSES -->
+        <div id="coursesTab" class="tab-content active">
+            <div class="content-box">
+                <h2>Courses</h2>
+                <button class="btn-success" onclick="toggleForm('createCourseForm')">+ Create Course</button>
+                
+                <div id="createCourseForm" class="form-section">
+                    <h3>New Course</h3>
+                    <label>Title *</label>
+                    <input type="text" id="courseTitle" required>
+                    <label>Description *</label>
+                    <textarea id="courseDescription" rows="4" required></textarea>
+                    <label>Thumbnail Image</label>
+                    <input type="file" id="courseThumbnail" accept="image/*" onchange="previewImage(this, 'courseThumbPreview')">
+                    <img id="courseThumbPreview" class="preview-img" style="display:none;">
+                    <label>Type</label>
+                    <select id="courseType">
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                    <label>Price ($)</label>
+                    <input type="number" id="coursePrice" value="0">
+                    <label>Level</label>
+                    <select id="courseLevel">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                    <div style="margin-top: 20px;">
+                        <button class="btn-success" onclick="createCourse()">Create</button>
+                        <button class="btn-danger" onclick="toggleForm('createCourseForm')">Cancel</button>
+                    </div>
+                    <div id="courseMessage"></div>
+                </div>
+
+                <table id="coursesTable">
+                    <thead><tr><th>Title</th><th>Type</th><th>Price</th><th>Enrollments</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- EVENTS -->
+        <div id="eventsTab" class="tab-content">
+            <div class="content-box">
+                <h2>Events</h2>
+                <button class="btn-success" onclick="toggleForm('createEventForm')">+ Create Event</button>
+                
+                <div id="createEventForm" class="form-section">
+                    <h3>New Event</h3>
+                    <label>Title *</label>
+                    <input type="text" id="eventTitle" required>
+                    <label>Description *</label>
+                    <textarea id="eventDescription" rows="4" required></textarea>
+                    <label>Event Image</label>
+                    <input type="file" id="eventThumbnail" accept="image/*" onchange="previewImage(this, 'eventThumbPreview')">
+                    <img id="eventThumbPreview" class="preview-img" style="display:none;">
+                    <label>Type</label>
+                    <select id="eventType">
+                        <option value="webinar">Webinar</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="conference">Conference</option>
+                    </select>
+                    <label>Start Date/Time</label>
+                    <input type="datetime-local" id="eventStart">
+                    <label>End Date/Time</label>
+                    <input type="datetime-local" id="eventEnd">
+                    <label>Max Participants</label>
+                    <input type="number" id="eventMaxParticipants" placeholder="Leave empty for unlimited">
+                    <div style="margin-top: 20px;">
+                        <button class="btn-success" onclick="createEvent()">Create</button>
+                        <button class="btn-danger" onclick="toggleForm('createEventForm')">Cancel</button>
+                    </div>
+                    <div id="eventMessage"></div>
+                </div>
+
+                <table id="eventsTable">
+                    <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Registrations</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- USERS -->
+        <div id="usersTab" class="tab-content">
+            <div class="content-box">
+                <h2>Users</h2>
+                <button class="btn-success" onclick="toggleForm('createUserForm')">+ Create User</button>
+                
+                <div id="createUserForm" class="form-section">
+                    <h3>New User</h3>
+                    <label>Username *</label>
+                    <input type="text" id="userName" required>
+                    <label>Email *</label>
+                    <input type="email" id="userEmail" required>
+                    <label>Password *</label>
+                    <input type="password" id="userPassword" required>
+                    <label>First Name</label>
+                    <input type="text" id="userFirstName">
+                    <label>Last Name</label>
+                    <input type="text" id="userLastName">
+                    <label>Role *</label>
+                    <select id="userRole">
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <div style="margin-top: 20px;">
+                        <button class="btn-success" onclick="createUser()">Create</button>
+                        <button class="btn-danger" onclick="toggleForm('createUserForm')">Cancel</button>
+                    </div>
+                    <div id="userMessage"></div>
+                </div>
+
+                <table id="usersTable">
+                    <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT USER MODAL -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editUserModal')">&times;</span>
+            <h2>Edit User</h2>
+            <input type="hidden" id="editUserId">
+            <label>Username</label>
+            <input type="text" id="editUserName">
+            <label>Email</label>
+            <input type="email" id="editUserEmail">
+            <label>Role</label>
+            <select id="editUserRole">
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+            </select>
+            <label>First Name</label>
+            <input type="text" id="editUserFirstName">
+            <label>Last Name</label>
+            <input type="text" id="editUserLastName">
+            <div style="margin-top: 20px;">
+                <button class="btn-success" onclick="updateUser()">Update</button>
+                <button class="btn-danger" onclick="closeModal('editUserModal')">Cancel</button>
+            </div>
+            <div id="editUserMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let authHeader = '';
+        const API = 'http://localhost:5000';
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            authHeader = 'Basic ' + btoa(email + ':' + password);
+            fetch(`${API}/admin`, { headers: { 'Authorization': authHeader } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    const err = document.getElementById('loginError');
+                    err.textContent = 'Invalid credentials';
+                    err.style.display = 'block';
+                } else {
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadDashboard();
+                }
+            });
+        }
+
+        function logout() {
+            authHeader = '';
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function loadDashboard() {
+            fetch(`${API}/admin`, { headers: { 'Authorization': authHeader } })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('usersCount').textContent = data.stats.users;
+                document.getElementById('coursesCount').textContent = data.stats.courses;
+                document.getElementById('eventsCount').textContent = data.stats.events;
+                document.getElementById('postsCount').textContent = data.stats.posts;
+            });
+            loadCourses();
+            loadEvents();
+            loadUsers();
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch(`${API}/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': authHeader },
+                body: formData
+            });
+            const data = await response.json();
+            return data.filepath;
+        }
+
+        async function createCourse() {
+            const thumbnailFile = document.getElementById('courseThumbnail').files[0];
+            let thumbnailPath = '';
+            if (thumbnailFile) {
+                thumbnailPath = await uploadFile(thumbnailFile);
+            }
+
+            const course = {
+                title: document.getElementById('courseTitle').value,
+                description: document.getElementById('courseDescription').value,
+                thumbnail: thumbnailPath,
+                courseType: document.getElementById('courseType').value,
+                price: parseFloat(document.getElementById('coursePrice').value),
+                level: document.getElementById('courseLevel').value,
+                isActive: true
+            };
+
+            fetch(`${API}/admin/courses`, {
+                method: 'POST',
+                headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+                body: JSON.stringify(course)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('courseMessage').innerHTML = '<div class="success">✅ Course created!</div>';
+                loadCourses();
+                loadDashboard();
+                setTimeout(() => toggleForm('createCourseForm'), 1500);
+            });
+        }
+
+        function loadCourses() {
+            fetch(`${API}/admin/courses`, { headers: { 'Authorization': authHeader } })
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector('#coursesTable tbody');
+                tbody.innerHTML = '';
+                data.courses.forEach(course => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${course.title}</td>
+                            <td>${course.courseType}</td>
+                            <td>$${course.price}</td>
+                            <td>${course.enrollmentCount}</td>
+                            <td>
+                                <button class="btn-danger" onclick="deleteCourse('${course._id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function deleteCourse(id) {
+            if (confirm('Delete this course?')) {
+                fetch(`${API}/admin/courses/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authHeader }
+                }).then(() => { loadCourses(); loadDashboard(); });
+            }
+        }
+
+        async function createEvent() {
+            const thumbnailFile = document.getElementById('eventThumbnail').files[0];
+            let thumbnailPath = '';
+            if (thumbnailFile) {
+                thumbnailPath = await uploadFile(thumbnailFile);
+            }
+
+            const event = {
+                title: document.getElementById('eventTitle').value,
+                description: document.getElementById('eventDescription').value,
+                thumbnail: thumbnailPath,
+                eventType: document.getElementById('eventType').value,
+                startDateTime: document.getElementById('eventStart').value,
+                endDateTime: document.getElementById('eventEnd').value,
+                maxParticipants: parseInt(document.getElementById('eventMaxParticipants').value) || null,
+                isActive: true
+            };
+
+            fetch(`${API}/admin/events`, {
+                method: 'POST',
+                headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+                body: JSON.stringify(event)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('eventMessage').innerHTML = '<div class="success">✅ Event created!</div>';
+                loadEvents();
+                loadDashboard();
+                setTimeout(() => toggleForm('createEventForm'), 1500);
+            });
+        }
+
+        function loadEvents() {
+            fetch(`${API}/admin/events`, { headers: { 'Authorization': authHeader } })
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector('#eventsTable tbody');
+                tbody.innerHTML = '';
+                data.events.forEach(event => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${event.title}</td>
+                            <td>${event.eventType}</td>
+                            <td>${new Date(event.startDateTime).toLocaleDateString()}</td>
+                            <td>${event.registrationCount}</td>
+                            <td>
+                                <button class="btn-danger" onclick="deleteEvent('${event._id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function deleteEvent(id) {
+            if (confirm('Delete this event?')) {
+                fetch(`${API}/admin/events/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authHeader }
+                }).then(() => { loadEvents(); loadDashboard(); });
+            }
+        }
+
+        function createUser() {
+            const user = {
+                username: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                password: document.getElementById('userPassword').value,
+                firstName: document.getElementById('userFirstName').value,
+                lastName: document.getElementById('userLastName').value,
+                role: document.getElementById('userRole').value
+            };
+
+            fetch(`${API}/admin/users`, {
+                method: 'POST',
+                headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('userMessage').innerHTML = '<div class="success">✅ User created!</div>';
+                loadUsers();
+                loadDashboard();
+                setTimeout(() => toggleForm('createUserForm'), 1500);
+            });
+        }
+
+        function loadUsers() {
+            fetch(`${API}/admin/users`, { headers: { 'Authorization': authHeader } })
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '';
+                data.users.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td><strong>${user.role}</strong></td>
+                            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn-warning" onclick="openEditUser('${user._id}', '${user.username}', '${user.email}', '${user.role}', '${user.firstName || ''}', '${user.lastName || ''}')">Edit Role</button>
+                                <button class="btn-danger" onclick="deleteUser('${user._id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function openEditUser(id, username, email, role, firstName, lastName) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUserName').value = username;
+            document.getElementById('editUserEmail').value = email;
+            document.getElementById('editUserRole').value = role;
+            document.getElementById('editUserFirstName').value = firstName;
+            document.getElementById('editUserLastName').value = lastName;
+            document.getElementById('editUserModal').style.display = 'block';
+        }
+
+        function updateUser() {
+            const id = document.getElementById('editUserId').value;
+            const user = {
+                username: document.getElementById('editUserName').value,
+                email: document.getElementById('editUserEmail').value,
+                role: document.getElementById('editUserRole').value,
+                firstName: document.getElementById('editUserFirstName').value,
+                lastName: document.getElementById('editUserLastName').value
+            };
+
+            fetch(`${API}/admin/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('editUserMessage').innerHTML = '<div class="success">✅ User updated!</div>';
+                loadUsers();
+                setTimeout(() => closeModal('editUserModal'), 1500);
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function deleteUser(id) {
+            if (confirm('Delete this user?')) {
+                fetch(`${API}/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authHeader }
+                }).then(() => { loadUsers(); loadDashboard(); });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,31 +1,7 @@
-# Python
-*.pyc
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-/media
-/staticfiles
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+node_modules/
+.env
+.env.local
 .DS_Store
-Thumbs.db
-
-# Environment variables
-.env 
+npm-debug.log*
+logs/
+*.log
