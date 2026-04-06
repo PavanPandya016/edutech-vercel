@@ -22,6 +22,7 @@ export default function Home() {
   const [settings, setSettings] = useState(null);
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [stats, setStats] = useState({ users: 0, courses: 0, instructors: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +33,8 @@ export default function Home() {
         setFeaturedCourses(cData);
         const iData = await instructorService.getInstructors();
         setInstructors(iData);
+        const statsData = await adminService.getStats();
+        setStats(statsData.stats || { users: 0, courses: 0, instructors: 0 });
       } catch (err) {
         console.error("Home fetch error:", err);
       }
@@ -43,13 +46,30 @@ export default function Home() {
     <div className="bg-white flex flex-col min-h-screen overflow-hidden font-outfit">
       <Header />
       <main>
-        <HeroSection images={settings?.heroImages} />
+        <HeroSection
+          images={settings?.heroImages}
+          stats={stats}
+          subtitle={settings?.heroSubtitle}
+        />
         <PopularCoursesSection courses={featuredCourses} />
-        <CategoriesSection />
-        <InstructorsSection instructors={instructors} />
-        <CtaSection image={settings?.ctaImage} />
+        <CategoriesSection
+          title={settings?.categoriesTitle}
+          subtitle={settings?.categoriesSubtitle}
+        />
+        <InstructorsSection
+          instructors={instructors}
+          title={settings?.instructorsTitle}
+          subtitle={settings?.instructorsSubtitle}
+        />
+        <CtaSection
+          image={settings?.ctaImage}
+          title={settings?.ctaTitle}
+          subtitle={settings?.ctaSubtitle}
+          buttonText={settings?.ctaButtonText}
+          buttonLink={settings?.ctaButtonLink}
+        />
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

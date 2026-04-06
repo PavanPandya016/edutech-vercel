@@ -165,6 +165,31 @@ export const adminService = {
       console.error(`Error fetching participants for event ${eventId}:`, error);
       throw error;
     }
+  },
+
+  /**
+   * Fetches all course applications.
+   */
+  getApplications: async () => {
+    try {
+      const data = await api.get('/admin/applications');
+      return data.data || [];
+    } catch (error) {
+      console.error('Error fetching course applications:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Updates the status of a course application.
+   */
+  updateApplicationStatus: async (id, status) => {
+    try {
+      return await api.put(`/admin/applications/${id}`, { status });
+    } catch (error) {
+      console.error(`Error updating application ${id} status:`, error);
+      throw error;
+    }
   }
 };
 
